@@ -19,14 +19,15 @@ class Player(pg.sprite.Sprite):
                 #~ imgSheetLoc, maxWidth)
                 
             # Load animation images from dictionary
-            self.idleImg = self.loadAnimImages(spriteSheet, idleList)[0]
+            self.idleImgs = self.loadAnimImages(spriteSheet, idleList)
+            self.idleImgs.append(pg.transform.flip(self.idleImgs[0], True, False))
             self.jumpImg = self.loadAnimImages(spriteSheet, jumpList)[0]
             self.walkImgsR = self.loadAnimImages(spriteSheet, walkList)
             self.walkImgsL = []
             for img in self.walkImgsR:
                 self.walkImgsL.append(pg.transform.flip(img, True, False))
             
-            self.image = self.idleImg
+            self.image = self.idleImgs[0]
         except:
             self.image = pg.Surface((30, 40))
             self.image.fill(GOLD)
@@ -41,6 +42,7 @@ class Player(pg.sprite.Sprite):
         
         self.walking = False
         self.jumping = False
+        self.rightFlag = True
         self.animDelay = 200
         self.lastAnim = 0
         self.currentFrame = 0
@@ -89,21 +91,28 @@ class Player(pg.sprite.Sprite):
             self.lastAnim = now
             self.currentFrame += 1
             self.currentFrame %= len(whichList)
+            bottom = self.rect.bottom
             self.image = whichList[self.currentFrame]
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom-5
     
     def move(self):
         # Use idle image if not moving
         if self.walking == False and self.jumping == False:
-            bottom = self.rect.bottom
-            self.image = self.idleImg
+            #~ self.image = self.idleImgs[0]
+            if self.rightFlag == True:
+                self.image = self.idleImgs[0]
+            else:
+                self.image = self.idleImgs[1]
             self.rect = self.image.get_rect()
-            self.rect.bottom = bottom
         
         # Use walking images if walking
         if self.walking == True and self.jumping == False:
             if self.vel.x > 0:
+                self.rightFlag = True
                 self.animate(self.walkImgsR)
             if self.vel.x < 0:
+                self.rightFlag = False
                 self.animate(self.walkImgsL)
         
         if self.jumping == True:

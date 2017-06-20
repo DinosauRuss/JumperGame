@@ -35,7 +35,7 @@ class Game():
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
         
-        self.player1 = Player(P2_SPRITESHEET, sWidth/2, sHeight/2, 35,\
+        self.player1 = Player(P2_SPRITESHEET, 0, sHeight-20, 50,\
             PLAYER_IMAGES['idle'],\
             PLAYER_IMAGES['walking'],
             PLAYER_IMAGES['jumping'])
