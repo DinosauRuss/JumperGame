@@ -15,8 +15,6 @@ class Player(pg.sprite.Sprite):
         super().__init__()
         
         self.maxWidth = maxWidth
-        #~ sheetPath = os.path.join(img_dir, spriteSheet)
-        #~ self.sheet = pg.image.load(sheetPath).convert_alpha()
         self.sheet = spriteSheet
         
         try:                
@@ -38,7 +36,7 @@ class Player(pg.sprite.Sprite):
             # Use generic surface if error loading images
             self.image = pg.Surface((30, 40))
             self.image.fill(GOLD)
-        self.sm_img = self.scaleImg(self.image, 20)
+        self.sm_img = scaleImg(self.image, 20, None)
         self.sm_img_rect = self.sm_img.get_rect()
         self.rect = self.image.get_rect()
         #~ self.rect.center = (startx, starty)        
@@ -63,31 +61,11 @@ class Player(pg.sprite.Sprite):
         #~ stan.set_alpha(100)
         #~ self.image.blit(stan, (0,0))
     
-    def grabSpriteFromSheet(self, rect, maxWidth):
-        x, y, width, height = rect
-        
-        img = pg.Surface((width, height))
-        #~ img.set_colorkey(BLACK)
-        img.set_colorkey(img.get_at((1,1)))
-        img.blit(self.sheet, (0,0), (x,y,width,height))
-        
-        img = self.scaleImg(img, maxWidth)
-        
-        return img
-    
-    def scaleImg(self, image, maxWidth):
-        imgRect = image.get_rect()
-        if imgRect.width > maxWidth or imgRect.width < maxWidth:
-            img = pg.transform.scale(image,\
-                (maxWidth, int((maxWidth*imgRect.height)/imgRect.width)))
-            return img
-        return image
-    
     def loadAnimImages(self, *args):
         imgList = []
         for i in args:
             for rect in i:
-                img = self.grabSpriteFromSheet(rect, self.maxWidth)
+                img = grabSpriteFromSheet(self.sheet, rect, self.maxWidth, None)
                 imgList.append(img)
         return imgList
     
@@ -182,13 +160,12 @@ class Platform(pg.sprite.Sprite):
     def __init__(self, spriteSheet, img_rect, x, y, maxHeight=30):
         super().__init__()
         
-        #~ sheetPath = os.path.join(img_dir, spriteSheet)
-        #~ self.sheet = pg.image.load(sheetPath).convert_alpha()
         self.sheet = spriteSheet
         self.maxHeight = maxHeight
         
         try:
-            self.image = self.grabSpriteFromSheet(img_rect)
+            
+            self.image = grabSpriteFromSheet(self.sheet, img_rect, None, self.maxHeight)
         except Exception as e:
             print(e)
             print(sys.exc_info()[0])
@@ -199,29 +176,6 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
         
-    def grabSpriteFromSheet(self, rect):
-        x, y, width, height = rect
-        
-        img = pg.Surface((width, height))
-        #~ img.set_colorkey(BLACK)
-        img.set_colorkey(img.get_at((1,1)))
-        img.blit(self.sheet, (0,0), (x,y,width,height))
-        
-        img = self.scaleImg(img, self.maxHeight)
-        
-        return img
-        
-
-
-    
-    def scaleImg(self, image, maxHeight):
-        imgRect = image.get_rect()
-        if imgRect.height > maxHeight:
-            img = pg.transform.scale(image,\
-                (int((maxHeight*imgRect.width)/imgRect.height), maxHeight))
-            return img
-        return image
-    
     def overrideWidth(self, width):
         imgRect = self.image.get_rect()
         tmp_ctr = self.rect.center
@@ -230,4 +184,38 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = tmp_ctr
 
+
+
+
+def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
+    x, y, width, height = rect
+    
+    img = pg.Surface((width, height))
+    #~ img.set_colorkey(BLACK)
+    img.set_colorkey(img.get_at((1,1)))
+    img.blit(spriteSheet, (0,0), (x,y,width,height))
+    
+    if maxHeight != None:
+        img = scaleImg(img, None, maxHeight)
+    if maxWidth != None:
+        img = scaleImg(img, maxWidth, None)
+    return img  
+        
+def scaleImg(image, maxWidth, maxHeight):
+    imgRect = image.get_rect()
+    
+    if maxWidth != None:
+        if imgRect.width > maxWidth or imgRect.width < maxWidth:
+            img = pg.transform.scale(image,\
+                (maxWidth, int((maxWidth*imgRect.height)/imgRect.width)))
+            return img
+    if maxHeight != None:
+        if imgRect.height > maxHeight or imgRect.height < maxHeight:
+            img = pg.transform.scale(image,\
+                (int((maxHeight*imgRect.width)/imgRect.height), maxHeight))
+            return img
+    return image
+        
+        
+        
         

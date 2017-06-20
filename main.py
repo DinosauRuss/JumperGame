@@ -35,8 +35,6 @@ class Game():
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
         
-        player_sheet_path = os.path.join(img_dir, P1_SPRITESHEET)
-        self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
         self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
             PLAYER_IMAGES['idle'],\
             PLAYER_IMAGES['walking'],
@@ -57,8 +55,6 @@ class Game():
         #~ self.all_sprites.add(self.player2)
         #~ self.dudes.add(self.player2)
         
-        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
-        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
         # Starting platforms
         for plat in START_PLATFORM_LIST:
             x, y = plat
@@ -163,7 +159,6 @@ class Game():
                     random.randrange(-75, -30))
                 self.all_sprites.add(p)
                 self.platforms.add(p)
-            
 
     def checkForEnd(self):
         if self.player1.pos.y > sHeight:
@@ -183,8 +178,9 @@ class Game():
         # Game Loop - Draw
         
         #draw graphics
-        self.screen.fill(BG_COLOR)        
+        self.screen.fill(BG_COLOR)
         self.all_sprites.draw(self.screen)
+        self.screen.blit(self.player1.image, (self.player1.rect))      
         self.drawText(str(self.score), 30, GOLD, sWidth/2, 10)
         self.drawTurns()
         
@@ -256,6 +252,12 @@ class Game():
                     waiting = False
     
     def loadData(self):
+        # Load sprite sheets
+        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
+        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
+        player_sheet_path = os.path.join(img_dir, P1_SPRITESHEET)
+        self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
+        
         # Load high score file
         hsFile = os.path.join(self_dir, FILENAME)
         try:
