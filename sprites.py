@@ -1,6 +1,9 @@
 
 import os
 import pygame as pg
+import random
+import sys
+import traceback
 from settings import *
 
 vect = pg.math.Vector2
@@ -12,26 +15,30 @@ class Player(pg.sprite.Sprite):
         super().__init__()
         
         self.maxWidth = maxWidth
-        try:            
-            # Load image from spritesheet + resize
-            #~ self.sheetPath = os.path.join(img_dir, spriteSheet)
-            #~ self.image = self.grabSpriteFromSheet(self.sheetPath,\
-                #~ imgSheetLoc, maxWidth)
-                
+        #~ sheetPath = os.path.join(img_dir, spriteSheet)
+        #~ self.sheet = pg.image.load(sheetPath).convert_alpha()
+        self.sheet = spriteSheet
+        
+        try:                
             # Load animation images from dictionary
-            self.idleImgs = self.loadAnimImages(spriteSheet, idleList)
+            self.idleImgs = self.loadAnimImages(idleList)
+            # Add left facing idle image
             self.idleImgs.append(pg.transform.flip(self.idleImgs[0], True, False))
-            self.jumpImg = self.loadAnimImages(spriteSheet, jumpList)[0]
-            self.walkImgsR = self.loadAnimImages(spriteSheet, walkList)
+            self.jumpImgs = self.loadAnimImages(jumpList)
+            self.walkImgsR = self.loadAnimImages(walkList)
             self.walkImgsL = []
             for img in self.walkImgsR:
                 self.walkImgsL.append(pg.transform.flip(img, True, False))
             
             self.image = self.idleImgs[0]
-        except:
+        except Exception as e:
+            print(e)
+            print(sys.exc_info()[0])
+            print(traceback.format_exc())
+            # Use generic surface if error loading images
             self.image = pg.Surface((30, 40))
             self.image.fill(GOLD)
-        self.sm_img = self.scaleImg(self.image, 10)
+        self.sm_img = self.scaleImg(self.image, 20)
         self.sm_img_rect = self.sm_img.get_rect()
         self.rect = self.image.get_rect()
         #~ self.rect.center = (startx, starty)        
@@ -56,12 +63,12 @@ class Player(pg.sprite.Sprite):
         #~ stan.set_alpha(100)
         #~ self.image.blit(stan, (0,0))
     
-    def grabSpriteFromSheet(self, sheetPath, rect, maxWidth):
-        self.sheet = pg.image.load(sheetPath).convert_alpha()
+    def grabSpriteFromSheet(self, rect, maxWidth):
         x, y, width, height = rect
         
         img = pg.Surface((width, height))
-        img.set_colorkey(BLACK)
+        #~ img.set_colorkey(BLACK)
+        img.set_colorkey(img.get_at((1,1)))
         img.blit(self.sheet, (0,0), (x,y,width,height))
         
         img = self.scaleImg(img, maxWidth)
@@ -76,16 +83,16 @@ class Player(pg.sprite.Sprite):
             return img
         return image
     
-    def loadAnimImages(self, spriteSheet, *args):
-        sheetPath = os.path.join(img_dir, spriteSheet)
+    def loadAnimImages(self, *args):
         imgList = []
         for i in args:
             for rect in i:
-                img = self.grabSpriteFromSheet(sheetPath, rect, self.maxWidth)
+                img = self.grabSpriteFromSheet(rect, self.maxWidth)
                 imgList.append(img)
         return imgList
     
     def animate(self, whichList):
+        # Loop through list of images to animate sprite
         now = pg.time.get_ticks()
         if now - self.lastAnim > self.animDelay:
             self.lastAnim = now
@@ -99,7 +106,6 @@ class Player(pg.sprite.Sprite):
     def move(self):
         # Use idle image if not moving
         if self.walking == False and self.jumping == False:
-            #~ self.image = self.idleImgs[0]
             if self.rightFlag == True:
                 self.image = self.idleImgs[0]
             else:
@@ -114,10 +120,10 @@ class Player(pg.sprite.Sprite):
             if self.vel.x < 0:
                 self.rightFlag = False
                 self.animate(self.walkImgsL)
-        
+        # Use jumping image if jumping or falling
         if self.jumping == True:
             bottom = self.rect.bottom
-            self.image = self.jumpImg
+            self.animate(self.jumpImgs)
             self.rect = self.image.get_rect()
             self.rect.bottom = bottom
 
@@ -156,7 +162,7 @@ class Player(pg.sprite.Sprite):
         if self.pos.x > sWidth + half:
             self.pos.x = 0
     
-    def jump(self, power=PLAYER_JUMP_POWER):
+    def jump(self, power):
         # Jump only if standing on platform (not moving downward)
         if self.vel.y == 0:
             self.vel.y = -power
@@ -169,18 +175,59 @@ class Player(pg.sprite.Sprite):
     
     def update(self):
         self.move()
-        self.checkBounds()
-        #~ self.checkForDirection()        
+        self.checkBounds()     
+        
         
 class Platform(pg.sprite.Sprite):
-    def __init__(self, x, y, width, height):
+    def __init__(self, spriteSheet, img_rect, x, y, maxHeight=30):
         super().__init__()
         
-        self.image = pg.Surface((width, height))
-        self.image.fill(GREEN)
+        #~ sheetPath = os.path.join(img_dir, spriteSheet)
+        #~ self.sheet = pg.image.load(sheetPath).convert_alpha()
+        self.sheet = spriteSheet
+        self.maxHeight = maxHeight
+        
+        try:
+            self.image = self.grabSpriteFromSheet(img_rect)
+        except Exception as e:
+            print(e)
+            print(sys.exc_info()[0])
+            print(traceback.format_exc())
+            #~ # Use generic surface if image load error
+            self.image = pg.Surface((800, 20))
+            self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.center = (x,y)
+        
+    def grabSpriteFromSheet(self, rect):
+        x, y, width, height = rect
+        
+        img = pg.Surface((width, height))
+        #~ img.set_colorkey(BLACK)
+        img.set_colorkey(img.get_at((1,1)))
+        img.blit(self.sheet, (0,0), (x,y,width,height))
+        
+        img = self.scaleImg(img, self.maxHeight)
+        
+        return img
+        
+
 
     
+    def scaleImg(self, image, maxHeight):
+        imgRect = image.get_rect()
+        if imgRect.height > maxHeight:
+            img = pg.transform.scale(image,\
+                (int((maxHeight*imgRect.width)/imgRect.height), maxHeight))
+            return img
+        return image
+    
+    def overrideWidth(self, width):
+        imgRect = self.image.get_rect()
+        tmp_ctr = self.rect.center
+        self.image = pg.transform.scale(self.image,\
+                (width, int((width*imgRect.height)/imgRect.width)))
+        self.rect = self.image.get_rect()
+        self.rect.center = tmp_ctr
+
         

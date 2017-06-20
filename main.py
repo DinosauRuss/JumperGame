@@ -35,7 +35,9 @@ class Game():
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
         
-        self.player1 = Player(P2_SPRITESHEET, 0, sHeight-20, 50,\
+        player_sheet_path = os.path.join(img_dir, P1_SPRITESHEET)
+        self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
+        self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
             PLAYER_IMAGES['idle'],\
             PLAYER_IMAGES['walking'],
             PLAYER_IMAGES['jumping'])
@@ -49,17 +51,25 @@ class Game():
         #~ stan.set_alpha(100)
         #~ self.player1.image.blit(stan, (0,0))
         
+        # Add a player 2
         #~ self.player2 = Player(P2_SPRITESHEET, sWidth/4, sHeight/4,\
             #~ (145, 0, 30, 63), 50, pg.K_s, pg.K_f)
         #~ self.all_sprites.add(self.player2)
         #~ self.dudes.add(self.player2)
         
+        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
+        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
         # Starting platforms
-        for plat in PLATFORM_LIST:
-            p = Platform(*plat)
+        for plat in START_PLATFORM_LIST:
+            x, y = plat
+            p = Platform(self.plat_sheet, random.choice(list(PLATFORM_CHOICES.values())), x, y)
             self.all_sprites.add(p)
             self.platforms.add(p)
-            
+        p = Platform(self.plat_sheet, (0, 768, 380, 94), sWidth/2, sHeight-55)
+        p.overrideWidth(sWidth-50)
+        self.all_sprites.add(p)
+        self.platforms.add(p)
+        
         self.run()
     
     def run(self):
@@ -121,8 +131,8 @@ class Game():
                     
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
-                    self.player1.jump()
-                #~ # Player2 control
+                    self.player1.jump(PLAYER_JUMP_POWER)
+            #~ # Player2 control
             #~ if event.type == pg.KEYDOWN:
                 #~ if event.key == pg.K_e:
                     #~ self.player2.jump()
@@ -145,13 +155,15 @@ class Game():
     def spawnPlatform(self):
         # Spawn new platforms above screen as player\
         # moves upward in world
-        while len(self.platforms) < 6:
-            pWidth = random.randrange(50, 200)
-            p = Platform(random.randrange(0, sWidth-pWidth),
-                         random.randrange(-75, -30),
-                         pWidth, 20)
-            self.all_sprites.add(p)
-            self.platforms.add(p)
+            
+            while len(self.platforms) < 6:
+                p = Platform(self.plat_sheet,\
+                    random.choice(list(PLATFORM_CHOICES.values())),\
+                    random.randrange(0, sWidth-50),\
+                    random.randrange(-75, -30))
+                self.all_sprites.add(p)
+                self.platforms.add(p)
+            
 
     def checkForEnd(self):
         if self.player1.pos.y > sHeight:
@@ -244,7 +256,6 @@ class Game():
                     waiting = False
     
     def loadData(self):
-        
         # Load high score file
         hsFile = os.path.join(self_dir, FILENAME)
         try:
