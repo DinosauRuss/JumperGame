@@ -1,1 +1,1 @@
-Game where umping to higher platforms raises score.
+Game where jumping to higher platforms raises score.

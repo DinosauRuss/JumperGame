@@ -141,9 +141,10 @@ class Player(pg.sprite.Sprite):
         
     def checkBounds(self):
         # Wrap around sides of screen
-        if self.pos.x < 0:
+        half = int(self.rect.width/2)
+        if self.pos.x < -half:
             self.pos.x = sWidth
-        if self.pos.x > sWidth:
+        if self.pos.x > sWidth + half:
             self.pos.x = 0
     
     def jump(self, power=PLAYER_JUMP_POWER):
