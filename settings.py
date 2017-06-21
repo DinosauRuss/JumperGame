@@ -26,11 +26,18 @@ PLAYER_JUMP_POWER = 14
 # I/O
 self_dir = os.path.dirname(__file__)
 img_dir = os.path.join(self_dir, 'Images')
+snd_dir = os.path.join(self_dir, 'Sounds')
 
 FILENAME = 'HighScore.txt'
 ENV_SPRITESHEET = 'jumper.png'
 P1_SPRITESHEET = 'dax.png'
 CLOUD = 'cloud9.png'
+
+SOUND_FILES = {'BG_MUSIC': 'Main-Theme.mp3',
+               'JUMP': 'jump.ogg',
+               'COINS': 'coins.wav',
+               'SPRING': 'spring.ogg',
+               'OUCH': 'scream.wav'}
 
 # Starting platform list from ENV_SPRITESHEET
 START_PLATFORM_LIST = [((sWidth/2)-50, sHeight/2),

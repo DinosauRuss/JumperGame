@@ -11,6 +11,7 @@ class Game():
     def __init__(self):
         # Initialize window, etc        
         pg.init()
+        pg.mixer.init()
         os.environ['SDL_VIDEO_CENTERED'] = 'True'
         self.screen = pg.display.set_mode((sWidth, sHeight))
         pg.display.set_caption(TITLE)
@@ -22,10 +23,12 @@ class Game():
 
         self.turns = 3
         self.loadData()
+        
+        # Start background music playing
+        pg.mixer.music.play(loops = -1)
     
     def new(self):
         # Start a new game       
-        
         self.score = 0
         if self.turns <= 0:
             self.turns = 3
@@ -125,9 +128,11 @@ class Game():
                 # Player shoots upward if bounces on a springv
                 if self.player1.vel.y > 0 and\
                     powerCollisions[0].style == 'spring':
+                    self.springSound.play()
                     self.player1.vel.y = -PLAYER_JUMP_POWER*2
                 # Coin raises score
                 if powerCollisions[0].style == 'coin':
+                    self.coinSound.play()
                     i.kill()
                     self.score += 500
                     
@@ -156,7 +161,7 @@ class Game():
                     
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
-                    self.player1.jump(PLAYER_JUMP_POWER)
+                    self.player1.jump(PLAYER_JUMP_POWER, self.jumpSound)
             #~ # Player2 control
             #~ if event.type == pg.KEYDOWN:
                 #~ if event.key == pg.K_e:
@@ -325,6 +330,15 @@ class Game():
                 self.highScore = int(f.read())
         except:
             self.highScore = 0
+        
+        # Load sound files
+        pg.mixer.music.load(os.path.join(snd_dir, SOUND_FILES['BG_MUSIC']))
+        pg.mixer.music.set_volume(.5)
+        self.jumpSound = pg.mixer.Sound(os.path.join(snd_dir, SOUND_FILES['JUMP']))
+        self.jumpSound.set_volume(.3)
+        self.coinSound = pg.mixer.Sound(os.path.join(snd_dir, SOUND_FILES['COINS']))
+        self.springSound = pg.mixer.Sound(os.path.join(snd_dir, SOUND_FILES['SPRING']))
+        self.ouchSound = pg.mixer.Sound(os.path.join(snd_dir, SOUND_FILES['OUCH']))
 
     def writeFile(self, score):
         with open(SCORE_FILE, 'w') as hs:

@@ -144,10 +144,12 @@ class Player(pg.sprite.Sprite):
         if self.pos.x > sWidth + half:
             self.pos.x = 0
     
-    def jump(self, power):
+    def jump(self, power, *args):
         # Jump only if standing on platform (not moving downward)
         if self.vel.y == 0:
             self.vel.y = -power
+            for i in args:
+                i.play()
             
     def jumpShort(self):
         # Callback to KEYUP event
