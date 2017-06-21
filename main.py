@@ -31,7 +31,7 @@ class Game():
             self.turns = 3
         
         # Create sprites/groups
-        self.all_sprites = pg.sprite.Group()
+        self.all_sprites = pg.sprite.LayeredUpdates()
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
         self.clouds = pg.sprite.Group()
@@ -237,8 +237,7 @@ class Game():
         
         #draw graphics
         self.screen.fill(BG_COLOR)
-        self.all_sprites.draw(self.screen)
-        self.screen.blit(self.player1.image, (self.player1.rect))      
+        self.all_sprites.draw(self.screen)   
         self.drawText(str(self.score), 30, GOLD, sWidth/2, 10)
         self.drawTurns()
         

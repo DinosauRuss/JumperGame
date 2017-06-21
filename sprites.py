@@ -26,6 +26,7 @@ class Player(pg.sprite.Sprite):
         
         self.maxWidth = maxWidth
         self.sheet = spriteSheet
+        self._layer = 2
         
         try:       
             # Load animation images from dictionary
@@ -164,6 +165,7 @@ class Platform(pg.sprite.Sprite):
         
         self.sheet = spriteSheet
         self.maxHeight = maxHeight
+        self._layer = 1
         
         try:
             self.image = grabSpriteFromSheet(self.sheet, img_rect, None, self.maxHeight)
@@ -193,6 +195,7 @@ class Cloud(pg.sprite.Sprite):
         super().__init__()
         
         self.maxHeight = random.randrange(30,81)
+        self._layer = 0
         
         try:
             tmp_img = image
@@ -221,6 +224,7 @@ class Powerup(pg.sprite.Sprite):
         self.maxHeight = maxHeight
         self.style = style
         self.platform = platform
+        self._layer = 1
         
         try:            
             self.idleImgs = loadAnimImages(self.sheet, self.maxWidth, self.maxHeight, img_rect)
@@ -258,6 +262,7 @@ class Powerup(pg.sprite.Sprite):
         self.animate(self.idleImgs)
         self.rect.midbottom = self.platform.rect.midtop
         self.rect.y -= 5
+
 
 def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
     x, y, width, height = rect
