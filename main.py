@@ -34,6 +34,7 @@ class Game():
         self.all_sprites = pg.sprite.Group()
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
+        self.clouds = pg.sprite.Group()
         
         self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
             PLAYER_IMAGES['idle'],\
@@ -66,6 +67,12 @@ class Game():
         self.all_sprites.add(p)
         self.platforms.add(p)
         
+        for i in range(5):
+            c = Cloud(self.cloud_sheet)
+            c.rect.y += 500
+            self.all_sprites.add(c)
+            self.clouds.add(c)
+        
         self.run()
     
     def run(self):
@@ -96,13 +103,14 @@ class Game():
                         lowestPlat = i
                     
                 if self.player1.pos.y <= lowestPlat.rect.bottom:
-                    self.player1.pos.y = lowestPlat.rect.top+1
-                    # Add slight bounce when player lands
-                    self.player1.vel.y *= -.25
-                    if abs(self.player1.vel.y) < .2:
-                        self.player1.vel.y = 0   
-
-                    
+                    if self.player1.pos.x > lowestPlat.rect.left-5 and\
+                        self.player1.pos.x < lowestPlat.rect.right+5:
+                        self.player1.pos.y = lowestPlat.rect.top+1
+                        # Add slight bounce when player lands
+                        self.player1.vel.y *= -.25
+                        if abs(self.player1.vel.y) < .2:
+                            self.player1.vel.y = 0   
+       
         # Collision check if multiple players on screen            
         #~ hits = pg.sprite.groupcollide(self.dudes, self.platforms,\
             #~ False, False)
@@ -113,7 +121,7 @@ class Game():
                     #~ player.vel.y = 0
         
         self.scrollScreen()
-        self.spawnPlatform() 
+        self.spawnNew() 
         self.checkForEnd()       
 
     def events(self):
@@ -142,16 +150,29 @@ class Game():
             # scroll accordingly
             if self.player1.rect.top <= sHeight/3:
                 self.player1.pos.y += abs(self.player1.vel.y)
+                
                 for plat in self.platforms:
                     plat.rect.y += abs(self.player1.vel.y)
                     if plat.rect.top >= sHeight:
                         plat.kill()
                         self.score += 10
+                
+                # Small chance of spawning new cloud\
+                # on every screen scoll
+                if random.randrange(0,100) < 4:
+                    c = Cloud(self.cloud_sheet)
+                    self.all_sprites.add(c)
+                    self.clouds.add(c)
+                for cloud in self.clouds:
+                    # Larger clouds scroll more quickly
+                    if cloud.rect.height >= 51:
+                        cloud.rect.y += abs(self.player1.vel.y/2)
+                    else:
+                        cloud.rect.y += abs(self.player1.vel.y/3)
 
-    def spawnPlatform(self):
+    def spawnNew(self):
         # Spawn new platforms above screen as player\
         # moves upward in world
-            
             while len(self.platforms) < 6:
                 p = Platform(self.plat_sheet,\
                     random.choice(list(PLATFORM_CHOICES.values())),\
@@ -161,15 +182,16 @@ class Game():
                 self.platforms.add(p)
 
     def checkForEnd(self):
-        if self.player1.pos.y > sHeight:
+        if self.player1.pos.y >= sHeight:            
+            self.player1.rect.bottom = sHeight
             # Follow player down after falling
             self.player1.pos.y -= self.player1.vel.y
-            # Platforms fly upward
-            for sp in self.all_sprites:
-                sp.rect.y -= max(10, self.player1.vel.y)
+            # Platforms/clouds fly upward
+            for plat in self.all_sprites:
+                plat.rect.y -= min(10, self.player1.vel.y)
                 # Delete platform when it leaves the screen
-                if sp.rect.bottom < 0:
-                    sp.kill()
+                if plat.rect.bottom < 0:
+                    plat.kill()
                 if len(self.platforms) == 0:
                     self.turns -= 1
                     self.playing = False
@@ -253,10 +275,13 @@ class Game():
     
     def loadData(self):
         # Load sprite sheets
-        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
-        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
         player_sheet_path = os.path.join(img_dir, P1_SPRITESHEET)
         self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
+        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
+        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
+        cloud_path = os.path.join(img_dir, CLOUD)
+        self.cloud_sheet = pg.image.load(cloud_path).convert_alpha()
+
         
         # Load high score file
         hsFile = os.path.join(self_dir, FILENAME)

@@ -1,7 +1,7 @@
 import os
 
 # Game settings
-sWidth = 450
+sWidth = 550
 sHeight = 600
 FPS = 60
 TITLE = 'Gravity Game'
@@ -19,7 +19,7 @@ BG_COLOR = (204,229,255)
 
 # Player properties
 PLAYER_ACC = 0.5
-PLAYER_FRICTION = -0.11
+PLAYER_FRICTION = -0.10
 PLAYER_GRAVITY = 0.4
 PLAYER_JUMP_POWER = 14
                  
@@ -30,9 +30,10 @@ img_dir = os.path.join(self_dir, 'Images')
 FILENAME = 'HighScore.txt'
 ENV_SPRITESHEET = 'jumper.png'
 P1_SPRITESHEET = 'dax.png'
+CLOUD = 'cloud9.png'
 
 # Starting platform list from ENV_SPRITESHEET
-START_PLATFORM_LIST = [((sWidth/2)-50, sHeight*(3/4)),
+START_PLATFORM_LIST = [((sWidth/2)-50, sHeight/2),
                  (125, sHeight-300),
                  (300, 200),
                  (175, 100)]
@@ -51,7 +52,7 @@ PLATFORM_CHOICES = {'ground_grass_small_broken': (382, 204, 200, 100),
                     'ground_wood_small': (218, 1558, 200, 100),
                     'ground_wood_small_broken': (382, 0, 200, 100)}
 
-# From P2_SPRITESHEET
+# From P1_SPRITESHEET
 PLAYER_IMAGES = {'idle' : [(10, 4, 40, 58)],
                  'walking':[(74, 0 , 40, 62),
                             (136, 0 , 40, 62)],

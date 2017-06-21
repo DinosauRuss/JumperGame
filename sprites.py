@@ -5,9 +5,19 @@ import random
 import sys
 import traceback
 from settings import *
-
 vect = pg.math.Vector2
 
+# These variables must be imported from a settings file or set here
+#~ PLAYER_ACC = 
+#~ PLAYER_FRICTION = 
+#~ PLAYER_GRAVITY = 
+#~ PLAYER_JUMP_POWER = 
+#~ sWidth = 
+#~ sHeight = 
+#~ FPS = 
+WHITE = (255,255,255)
+
+    
 class Player(pg.sprite.Sprite):
     def __init__(self,  spriteSheet, startx, starty,\
         maxWidth, idleList, walkList, jumpList,\
@@ -35,7 +45,7 @@ class Player(pg.sprite.Sprite):
             print(traceback.format_exc())
             # Use generic surface if error loading images
             self.image = pg.Surface((30, 40))
-            self.image.fill(GOLD)
+            self.image.fill(WHITE)
         self.sm_img = scaleImg(self.image, 20, None)
         self.sm_img_rect = self.sm_img.get_rect()
         self.rect = self.image.get_rect()
@@ -110,7 +120,7 @@ class Player(pg.sprite.Sprite):
         else:
             self.jumping = False
             
-        self.acc = vect(0,PLAYER_GRAVITY)
+        self.acc = vect(0, PLAYER_GRAVITY)
         
         pressed = pg.key.get_pressed()
         if pressed[self.leftKey]:
@@ -154,8 +164,7 @@ class Player(pg.sprite.Sprite):
     def update(self):
         self.move()
         self.checkBounds()     
-        
-        
+                
 class Platform(pg.sprite.Sprite):
     def __init__(self, spriteSheet, img_rect, x, y, maxHeight=30):
         super().__init__()
@@ -164,7 +173,6 @@ class Platform(pg.sprite.Sprite):
         self.maxHeight = maxHeight
         
         try:
-            
             self.image = grabSpriteFromSheet(self.sheet, img_rect, None, self.maxHeight)
         except Exception as e:
             print(e)
@@ -172,7 +180,7 @@ class Platform(pg.sprite.Sprite):
             print(traceback.format_exc())
             #~ # Use generic surface if image load error
             self.image = pg.Surface((800, 20))
-            self.image.fill(GREEN)
+            self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
         
@@ -184,8 +192,32 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = tmp_ctr
 
-
-
+    def update(self):
+        pass
+    
+class Cloud(pg.sprite.Sprite):
+    def __init__(self, image):
+        super().__init__()
+        
+        self.maxHeight = random.randrange(30,81)
+        
+        try:
+            tmp_img = image
+            self.image = scaleImg(tmp_img, None, self.maxHeight)
+        except Exception as e:
+            print(e)
+            print(sys.exc_info()[0])
+            print(traceback.format_exc())
+            #~ # Use generic surface if image load error
+            self.image = pg.Surface((300, 30))
+            self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(0, sWidth)
+        self.rect.y = random.randrange(-500, -50)
+    
+    def update(self):
+        if self.rect.top>= sHeight*2:
+            self.kill()
 
 def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
     x, y, width, height = rect
