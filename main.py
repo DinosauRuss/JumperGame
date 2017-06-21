@@ -35,13 +35,13 @@ class Game():
         self.platforms = pg.sprite.Group()
         self.dudes = pg.sprite.Group()
         self.clouds = pg.sprite.Group()
+        self.powerups = pg.sprite.Group()
         
         self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
             PLAYER_IMAGES['idle'],\
             PLAYER_IMAGES['walking'],
             PLAYER_IMAGES['jumping'])
-        self.all_sprites.add(self.player1)
-        self.dudes.add(self.player1)
+        self.addToGroups(self.player1, self.all_sprites, self.dudes)
         
         # Used to view instance self.rect        
         #~ pg.draw.circle(self.player1.image, (255,0,0), (tmp), self.player1.radius)
@@ -59,19 +59,16 @@ class Game():
         # Starting platforms
         for plat in START_PLATFORM_LIST:
             x, y = plat
-            p = Platform(self.plat_sheet, random.choice(list(PLATFORM_CHOICES.values())), x, y)
-            self.all_sprites.add(p)
-            self.platforms.add(p)
-        p = Platform(self.plat_sheet, (0, 768, 380, 94), sWidth/2, sHeight-55)
+            p = Platform(self.sprite_sheet, random.choice(list(PLATFORM_CHOICES.values())), x, y)
+            self.addToGroups(p, self.all_sprites, self.platforms)
+        p = Platform(self.sprite_sheet, (0, 768, 380, 94), sWidth/2, sHeight-55)
         p.overrideWidth(sWidth-50)
-        self.all_sprites.add(p)
-        self.platforms.add(p)
+        self.addToGroups(p, self.all_sprites, self.platforms)
         
         for i in range(5):
             c = Cloud(self.cloud_sheet)
             c.rect.y += 500
-            self.all_sprites.add(c)
-            self.clouds.add(c)
+            self.addToGroups(c, self.all_sprites, self.clouds)
         
         self.run()
     
@@ -109,7 +106,15 @@ class Game():
                         # Add slight bounce when player lands
                         self.player1.vel.y *= -.25
                         if abs(self.player1.vel.y) < .2:
-                            self.player1.vel.y = 0   
+                            self.player1.vel.y = 0 
+        
+        # Player shoots upward if bounces on a spring
+        powerCollisions = pg.sprite.spritecollide(self.player1,\
+            self.powerups, False)
+        if powerCollisions:
+            if self.player1.vel.y > 0 and\
+                powerCollisions[0].style == 'spring':
+                self.player1.vel.y = -PLAYER_JUMP_POWER*2
        
         # Collision check if multiple players on screen            
         #~ hits = pg.sprite.groupcollide(self.dudes, self.platforms,\
@@ -156,13 +161,18 @@ class Game():
                     if plat.rect.top >= sHeight:
                         plat.kill()
                         self.score += 10
+                for item in self.powerups:
+                    item.rect.y += abs(self.player1.vel.y)
+                    # Lose powerup if its platform goes away
+                    if not self.platforms.has(item.platform):
+                        item.kill()
+                        self.score += 10
                 
                 # Small chance of spawning new cloud\
                 # on every screen scoll
                 if random.randrange(0,100) < 4:
                     c = Cloud(self.cloud_sheet)
-                    self.all_sprites.add(c)
-                    self.clouds.add(c)
+                    self.addToGroups(c, self.all_sprites, self.clouds)
                 for cloud in self.clouds:
                     # Larger clouds scroll more quickly
                     if cloud.rect.height >= 51:
@@ -173,20 +183,26 @@ class Game():
     def spawnNew(self):
         # Spawn new platforms above screen as player\
         # moves upward in world
-            while len(self.platforms) < 6:
-                p = Platform(self.plat_sheet,\
-                    random.choice(list(PLATFORM_CHOICES.values())),\
-                    random.randrange(0, sWidth-50),\
-                    random.randrange(-75, -30))
-                self.all_sprites.add(p)
-                self.platforms.add(p)
+        while len(self.platforms) < 6:            
+            p = Platform(self.sprite_sheet,\
+                random.choice(list(PLATFORM_CHOICES.values())),\
+                random.randrange(0, sWidth-50),\
+                random.randrange(-75, -30))
+            self.addToGroups(p, self.all_sprites, self.platforms)
+            
+            powerup = random.randrange(1,101)
+            if powerup <= 5:
+                j = Powerup(p, 'spring', self.sprite_sheet, POWERUP_IMGS['spring_out'], 30)
+                self.addToGroups(j, self.all_sprites, self.powerups)
 
     def checkForEnd(self):
-        if self.player1.pos.y >= sHeight:            
+        if self.player1.pos.y >= sHeight:          
             self.player1.rect.bottom = sHeight
+            
             # Follow player down after falling
             self.player1.pos.y -= self.player1.vel.y
-            # Platforms/clouds fly upward
+            
+            # All other objects fly upward
             for plat in self.all_sprites:
                 plat.rect.y -= min(10, self.player1.vel.y)
                 # Delete platform when it leaves the screen
@@ -277,8 +293,8 @@ class Game():
         # Load sprite sheets
         player_sheet_path = os.path.join(img_dir, P1_SPRITESHEET)
         self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
-        plat_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
-        self.plat_sheet = pg.image.load(plat_sheet_path).convert_alpha()
+        sprite_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
+        self.sprite_sheet = pg.image.load(sprite_sheet_path).convert_alpha()
         cloud_path = os.path.join(img_dir, CLOUD)
         self.cloud_sheet = pg.image.load(cloud_path).convert_alpha()
 
@@ -301,6 +317,10 @@ class Game():
             self.playing = False
             self.programRunning = False
 
+    def addToGroups(self, instance, *args):
+        for i in args:
+            i.add(instance)
+    
 def mainLoop():
     game = Game()
     game.showStartScreen()

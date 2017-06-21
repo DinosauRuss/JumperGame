@@ -219,6 +219,31 @@ class Cloud(pg.sprite.Sprite):
         if self.rect.top>= sHeight*2:
             self.kill()
 
+class Powerup(pg.sprite.Sprite):
+    def __init__(self, platform, style, spriteSheet, img_rect, maxWidth):
+        super().__init__()
+        
+        self.sheet = spriteSheet
+        self.maxWidth = maxWidth
+        self.style = style
+        self.platform = platform
+        
+        try:
+            tmp_img = grabSpriteFromSheet(self.sheet, img_rect, self.maxWidth, None)
+            self.image = scaleImg(tmp_img, self.maxWidth, None)
+            #~ doSomething()
+        except Exception as e:
+            print(e)
+            print(sys.exc_info()[0])
+            print(traceback.format_exc())
+            #~ # Use generic surface if image load error
+            self.image = pg.Surface((20, 20))
+            self.image.fill(WHITE)
+            
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = self.platform.rect.midtop
+        self.rect.y -= 4
+
 def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
     x, y, width, height = rect
     
@@ -234,6 +259,7 @@ def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
     return img  
         
 def scaleImg(image, maxWidth, maxHeight):
+    # Scale images proportionally to a given width or height
     imgRect = image.get_rect()
     
     if maxWidth != None:
