@@ -27,18 +27,19 @@ class Player(pg.sprite.Sprite):
         self.maxWidth = maxWidth
         self.sheet = spriteSheet
         
-        try:                
+        try:       
             # Load animation images from dictionary
-            self.idleImgs = self.loadAnimImages(idleList)
+            self.idleImgs = loadAnimImages(self.sheet, self.maxWidth, None, idleList)
             # Add left facing idle image
             self.idleImgs.append(pg.transform.flip(self.idleImgs[0], True, False))
-            self.jumpImgs = self.loadAnimImages(jumpList)
-            self.walkImgsR = self.loadAnimImages(walkList)
+            self.jumpImgs = loadAnimImages(self.sheet, self.maxWidth, None, jumpList)
+            self.walkImgsR = loadAnimImages(self.sheet, self.maxWidth, None, walkList)
             self.walkImgsL = []
             for img in self.walkImgsR:
                 self.walkImgsL.append(pg.transform.flip(img, True, False))
             
             self.image = self.idleImgs[0]
+            
         except Exception as e:
             print(e)
             print(sys.exc_info()[0])
@@ -70,15 +71,7 @@ class Player(pg.sprite.Sprite):
         #~ stan.fill(GREY)
         #~ stan.set_alpha(100)
         #~ self.image.blit(stan, (0,0))
-    
-    def loadAnimImages(self, *args):
-        imgList = []
-        for i in args:
-            for rect in i:
-                img = grabSpriteFromSheet(self.sheet, rect, self.maxWidth, None)
-                imgList.append(img)
-        return imgList
-    
+
     def animate(self, whichList):
         # Loop through list of images to animate sprite
         now = pg.time.get_ticks()
@@ -220,18 +213,18 @@ class Cloud(pg.sprite.Sprite):
             self.kill()
 
 class Powerup(pg.sprite.Sprite):
-    def __init__(self, platform, style, spriteSheet, img_rect, maxWidth):
+    def __init__(self, platform, style, spriteSheet, img_rect, maxWidth, maxHeight):
         super().__init__()
         
         self.sheet = spriteSheet
         self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
         self.style = style
         self.platform = platform
         
-        try:
-            tmp_img = grabSpriteFromSheet(self.sheet, img_rect, self.maxWidth, None)
-            self.image = scaleImg(tmp_img, self.maxWidth, None)
-            #~ doSomething()
+        try:            
+            self.idleImgs = loadAnimImages(self.sheet, self.maxWidth, self.maxHeight, img_rect)
+            self.image = self.idleImgs[0]
         except Exception as e:
             print(e)
             print(sys.exc_info()[0])
@@ -242,7 +235,29 @@ class Powerup(pg.sprite.Sprite):
             
         self.rect = self.image.get_rect()
         self.rect.midbottom = self.platform.rect.midtop
-        self.rect.y -= 4
+        self.rect.y -= 5
+        
+        self.animDelay = 200
+        self.lastAnim = 0
+        self.currentFrame = 0
+        
+    def animate(self, whichList):
+        # Loop through list of images to animate sprite
+        if len(whichList) > 1:
+            now = pg.time.get_ticks()
+            if now - self.lastAnim > self.animDelay:
+                self.lastAnim = now
+                self.currentFrame += 1
+                self.currentFrame %= len(whichList)
+                midbottom = self.rect.midbottom
+                self.image = whichList[self.currentFrame]
+                self.rect = self.image.get_rect()
+                self.rect.midbottom = midbottom
+        
+    def update(self):
+        self.animate(self.idleImgs)
+        self.rect.midbottom = self.platform.rect.midtop
+        self.rect.y -= 5
 
 def grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight):
     x, y, width, height = rect
@@ -274,6 +289,13 @@ def scaleImg(image, maxWidth, maxHeight):
             return img
     return image
         
-        
+def loadAnimImages(spriteSheet, maxWidth, maxHeight, *args):
+    imgList = []
+    for i in args:
+        for rect in i:
+            img = grabSpriteFromSheet(spriteSheet, rect, maxWidth, maxHeight)
+            imgList.append(img)
+    return imgList
+
         
         

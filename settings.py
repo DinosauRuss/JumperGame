@@ -52,9 +52,13 @@ PLATFORM_CHOICES = {'ground_grass_small_broken': (382, 204, 200, 100),
                     'ground_wood_small': (218, 1558, 200, 100),
                     'ground_wood_small_broken': (382, 0, 200, 100)}
                     
-POWERUP_IMGS = {'spring': (420, 1558, 145, 77),
-               'spring_in': (0, 1988, 145, 57),
-                'spring_out': (434, 1265, 145, 110)}
+POWERUP_IMGS = {'spring_out': [(434, 1265, 145, 110)],
+                'bronze_coin': [(707, 296, 84, 84),
+                                (826, 206, 66, 84),
+                                (899, 116, 50, 84),
+                                (670, 406, 14, 84),
+                                (899, 116, 50, 84),
+                                (826, 206, 66, 84)]}
 
 # From P1_SPRITESHEET
 PLAYER_IMAGES = {'idle' : [(10, 4, 40, 58)],

@@ -88,6 +88,15 @@ class Game():
         # run update function for all sprites in group
         self.all_sprites.update()
         
+        # Don't let platforms overlap
+        for i in self.platforms:
+            platCollisions = pg.sprite.spritecollide(i, self.platforms, False)
+            if platCollisions:
+                if platCollisions[0] == i:
+                    pass
+                else:
+                    i.kill()
+            
         # Check if player hits platform only if falling
         collisions = pg.sprite.spritecollide(self.player1,\
             self.platforms, False)
@@ -108,13 +117,20 @@ class Game():
                         if abs(self.player1.vel.y) < .2:
                             self.player1.vel.y = 0 
         
-        # Player shoots upward if bounces on a spring
+        # Powerups
         powerCollisions = pg.sprite.spritecollide(self.player1,\
             self.powerups, False)
         if powerCollisions:
-            if self.player1.vel.y > 0 and\
-                powerCollisions[0].style == 'spring':
-                self.player1.vel.y = -PLAYER_JUMP_POWER*2
+            for i in powerCollisions:
+                # Player shoots upward if bounces on a springv
+                if self.player1.vel.y > 0 and\
+                    powerCollisions[0].style == 'spring':
+                    self.player1.vel.y = -PLAYER_JUMP_POWER*2
+                # Coin raises score
+                if powerCollisions[0].style == 'coin':
+                    i.kill()
+                    self.score += 500
+                    
        
         # Collision check if multiple players on screen            
         #~ hits = pg.sprite.groupcollide(self.dudes, self.platforms,\
@@ -190,10 +206,14 @@ class Game():
                 random.randrange(-75, -30))
             self.addToGroups(p, self.all_sprites, self.platforms)
             
-            powerup = random.randrange(1,101)
-            if powerup <= 5:
-                j = Powerup(p, 'spring', self.sprite_sheet, POWERUP_IMGS['spring_out'], 30)
+            # Spawn powerups randomly
+            random_powerup = random.randrange(1,101)
+            if random_powerup <= 5:
+                j = Powerup(p, 'spring', self.sprite_sheet, POWERUP_IMGS['spring_out'], 30, None)
                 self.addToGroups(j, self.all_sprites, self.powerups)
+            if random_powerup >= 90:
+                coin = Powerup(p, 'coin', self.sprite_sheet, POWERUP_IMGS['bronze_coin'], None, 30)
+                self.addToGroups(coin, self.all_sprites, self.powerups)
 
     def checkForEnd(self):
         if self.player1.pos.y >= sHeight:          
