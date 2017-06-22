@@ -70,10 +70,17 @@ POWERUP_IMGS = {'spring_out': [(434, 1265, 145, 110)],
                                 (826, 206, 66, 84)]}
 
 # From P1_SPRITESHEET
-PLAYER_IMAGES = {'idle' : [(10, 4, 40, 58)],
-                 'walking':[(74, 0 , 40, 62),
-                            (136, 0 , 40, 62)],
-                 'jumping': [(141, 208, 40, 60)]}
+#~ PLAYER_IMAGES = {'idle' : [(10, 4, 40, 58)],
+                 #~ 'walking':[(74, 0 , 40, 62),
+                            #~ (136, 0 , 40, 62)],
+                 #~ 'jumping': [(141, 208, 40, 60)]}
+
+PLAYER_IMAGES = {'idle' : [(0, 0, 64, 61)],
+                 'walking':[(64, 0 , 64, 61),
+                            (128, 0 , 64, 61)],
+                 'jumping': [(128, 205, 64, 61)]}
+                 
+                                 
                  
 ENV_IMAGES = {'cloud': (0, 0, 213, 119),
               'spikeball': (0, 0, 142, 148)}

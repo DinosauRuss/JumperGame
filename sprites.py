@@ -20,21 +20,22 @@ WHITE = (255,255,255)
     
 class Player(pg.sprite.Sprite):
     def __init__(self,  spriteSheet, startx, starty,\
-        maxWidth, idleList, walkList, jumpList,\
+        maxWidth, maxHeight, idleList, walkList, jumpList,\
         leftKey=pg.K_LEFT, rightKey=pg.K_RIGHT):
         super().__init__()
         
         self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
         self.sheet = spriteSheet
         self._layer = 2
         
         try:       
             # Load animation images from dictionary
-            self.idleImgs = loadAnimImages(self.sheet, self.maxWidth, None, idleList)
+            self.idleImgs = loadAnimImages(self.sheet, None, self.maxHeight, idleList)
             # Add left facing idle image
             self.idleImgs.append(pg.transform.flip(self.idleImgs[0], True, False))
-            self.jumpImgs = loadAnimImages(self.sheet, self.maxWidth, None, jumpList)
-            self.walkImgsR = loadAnimImages(self.sheet, self.maxWidth, None, walkList)
+            self.jumpImgs = loadAnimImages(self.sheet, None, self.maxHeight, jumpList)
+            self.walkImgsR = loadAnimImages(self.sheet, None, self.maxHeight, walkList)
             self.walkImgsL = []
             for img in self.walkImgsR:
                 self.walkImgsL.append(pg.transform.flip(img, True, False))
@@ -50,12 +51,10 @@ class Player(pg.sprite.Sprite):
             self.image.fill(WHITE)
         self.sm_img = scaleImg(self.image, 20, None)
         self.sm_img_rect = self.sm_img.get_rect()
-        self.rect = self.image.get_rect()
-        #~ self.rect.center = (startx, starty)        
+        self.rect = self.image.get_rect()  
         self.pos = vect(startx, starty)
         self.vel = vect(0,0)
         self.acc = vect(0,0)
-        self.radius = int(self.rect.height/2)
         
         self.walking = False
         self.jumping = False

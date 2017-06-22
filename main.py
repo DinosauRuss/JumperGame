@@ -20,6 +20,7 @@ class Game():
         
         self.clock = pg.time.Clock()
         self.programRunning = True
+        self.exitButton = False
 
         self.turns = 3
         self.mobSpawnDelay = 1500
@@ -44,14 +45,14 @@ class Game():
         self.powerups = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         
-        self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
+        self.player1 = Player(self.player_sheet,\
+            sWidth/2-30, sHeight*(3/4), 50, 75,\
             PLAYER_IMAGES['idle'],\
             PLAYER_IMAGES['walking'],
             PLAYER_IMAGES['jumping'])
         self.addToGroups(self.player1, self.all_sprites, self.dudes)
         
         # Used to view instance self.rect        
-        #~ pg.draw.circle(self.player1.image, (255,0,0), (tmp), self.player1.radius)
         #~ stan = pg.Surface((self.player1.rect.width, self.player1.rect.height))
         #~ stan.fill(GREY)
         #~ stan.set_alpha(100)
@@ -88,6 +89,10 @@ class Game():
             self.update()
             self.draw()
             self.waitForEsc()
+            
+        self.turns -= 1
+        if self.turns > 0 and self.exitButton == False:
+            self.endTurn()
     
     def update(self):
         # Game Loop - Update
@@ -166,6 +171,7 @@ class Game():
             # Check for window close button
             if event.type == pg.QUIT:
                 if self.playing:
+                    self.exitButton = True
                     self.playing = False
                     self.programRunning = False
                     
@@ -203,7 +209,6 @@ class Game():
                     if enemy.rect.y > sHeight:
                         enemy.kill()
                 
-                
                 # Small chance of spawning new cloud\
                 # on every screen scoll
                 if random.randrange(0,100) < 4:
@@ -226,7 +231,7 @@ class Game():
                 random.randrange(-75, -30))
             self.addToGroups(p, self.all_sprites, self.platforms)
             
-            # Spawn powerups randomly
+            # Spawn powerups randomly on platforms
             random_powerup = random.randrange(1,101)
             if random_powerup <= 5:
                 j = Powerup(p, 'spring', self.sprite_sheet,\
@@ -260,7 +265,7 @@ class Game():
                 if plat.rect.bottom < 0:
                     plat.kill()
                 if len(self.platforms) == 0:
-                    self.turns -= 1
+                    #~ self.turns -= 1
                     self.playing = False
 
     def draw(self):
@@ -324,6 +329,19 @@ class Game():
                             
             pg.display.flip()
             self.waitForKey()
+     
+    def endTurn(self):
+        self.drawText('Ouch! Press any key...', 35, BLUE, sWidth/2, sHeight/3)
+        if self.score > self.highScore:
+            self.drawText('New High Score!', 25, RED, sWidth/2, sHeight/2-50)
+            # Write high score to file
+            self.highScore = self.score
+            with open(os.path.join(self_dir, FILENAME),\
+                'w') as f:
+                f.write('{}\n'.format(self.highScore))
+
+        pg.display.flip()
+        self.waitForKey()
         
     def waitForKey(self):
         waiting = True
@@ -375,6 +393,7 @@ class Game():
     def waitForEsc(self):
         pressed = pg.key.get_pressed()
         if pressed[pg.K_ESCAPE]:
+            self.exitButton = True
             self.playing = False
             self.programRunning = False
 
