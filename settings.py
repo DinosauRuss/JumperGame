@@ -31,7 +31,8 @@ snd_dir = os.path.join(self_dir, 'Sounds')
 FILENAME = 'HighScore.txt'
 ENV_SPRITESHEET = 'jumper.png'
 P1_SPRITESHEET = 'dax.png'
-CLOUD = 'cloud9.png'
+CLOUD_SHEET = 'cloud9.png'
+ENEMY_SHEET = 'spikeBall.png'
 
 SOUND_FILES = {'BG_MUSIC': 'Main-Theme.mp3',
                'JUMP': 'jump.ogg',
@@ -46,7 +47,8 @@ START_PLATFORM_LIST = [((sWidth/2)-50, sHeight/2),
                  (175, 100)]
                 
 # Locations from sprite sheet xml
-PLATFORM_CHOICES = {'ground_grass_small_broken': (382, 204, 200, 100),
+PLATFORM_CHOICES = {'starting': (0, 768, 380, 94),
+                    'ground_grass_small_broken': (382, 204, 200, 100),
                     'ground_grass_broken': (0, 384, 380, 94),
                     'ground_grass': (0, 288, 380, 94),
                     'ground_grass_small': (213, 1662, 201, 100),
@@ -73,7 +75,8 @@ PLAYER_IMAGES = {'idle' : [(10, 4, 40, 58)],
                             (136, 0 , 40, 62)],
                  'jumping': [(141, 208, 40, 60)]}
                  
-                 
+ENV_IMAGES = {'cloud': (0, 0, 213, 119),
+              'spikeball': (0, 0, 142, 148)}
                  
 
 

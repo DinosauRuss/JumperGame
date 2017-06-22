@@ -84,6 +84,7 @@ class Player(pg.sprite.Sprite):
             self.image = whichList[self.currentFrame]
             self.rect = self.image.get_rect()
             self.rect.bottom = bottom-5
+            self.mask = pg.mask.from_surface(self.image)
     
     def move(self):
         # Use idle image if not moving
@@ -160,12 +161,75 @@ class Player(pg.sprite.Sprite):
     def update(self):
         self.move()
         self.checkBounds()     
-                
-class Platform(pg.sprite.Sprite):
-    def __init__(self, spriteSheet, img_rect, x, y, maxHeight=30):
+
+class SpinningMob(pg.sprite.Sprite):
+    def __init__(self, spriteSheet, img_rect, maxWidth, maxHeight):
         super().__init__()
         
         self.sheet = spriteSheet
+        self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
+        self._layer = 2
+        
+        try:
+            tmp_img = grabSpriteFromSheet(self.sheet, img_rect, self.maxWidth, None)
+            self.spinMobImgs = [tmp_img]
+            angle = 0
+            for i in range(35):
+                angle += 10
+                self.spinMobImgs.append(pg.transform.rotate(tmp_img, angle))
+            self.image = self.spinMobImgs[0]
+        except Exception as e:
+            print(e)
+            print(sys.exc_info()[0])
+            print(traceback.format_exc())
+            #~ # Use generic surface if image load error
+            self.image = pg.Surface((75, 75))
+            self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.choice((-50, sWidth+50))
+        self.rect.y = random.randint(0, sHeight/2)
+        
+        self.animDelay = 100
+        self.lastAnim = 0
+        self.currentFrame = 0
+        
+        self.xSpeed = random.choice((1, 2, 3))
+        if self.rect.x > 0:
+            self.xSpeed *= -1
+        self.yAcc = random.choice((-.08, .08))
+        self.ySpeed = 0
+
+    def animate(self):
+        # Loop through list of images to animate sprite
+        if len(self.spinMobImgs) > 1:
+            now = pg.time.get_ticks()
+            if now - self.lastAnim > self.animDelay:
+                self.lastAnim = now
+                self.currentFrame += 1
+                self.currentFrame %= len(self.spinMobImgs)
+                center = self.rect.center
+                self.image = self.spinMobImgs[self.currentFrame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
+                self.mask = pg.mask.from_surface(self.image)
+        
+    def update(self):
+        self.animate()
+        
+        self.rect.x += self.xSpeed
+        # Mobs move in wave pattern across screen
+        self.ySpeed += self.yAcc
+        self.rect.y += self.ySpeed
+        if self.ySpeed >= 4 or self.ySpeed <= -3:
+            self.yAcc *= -1
+                
+class Platform(pg.sprite.Sprite):
+    def __init__(self, spriteSheet, img_rect, x, y, maxWidth=200, maxHeight=30):
+        super().__init__()
+        
+        self.sheet = spriteSheet
+        self.maxWidth = maxWidth
         self.maxHeight = maxHeight
         self._layer = 1
         
@@ -193,15 +257,15 @@ class Platform(pg.sprite.Sprite):
         pass
     
 class Cloud(pg.sprite.Sprite):
-    def __init__(self, image):
+    def __init__(self, spriteSheet, img_rect):
         super().__init__()
         
+        self.sheet = spriteSheet
         self.maxHeight = random.randrange(30,81)
         self._layer = 0
         
         try:
-            tmp_img = image
-            self.image = scaleImg(tmp_img, None, self.maxHeight)
+            self.image = grabSpriteFromSheet(self.sheet, img_rect, None, self.maxHeight)
         except Exception as e:
             print(e)
             print(sys.exc_info()[0])

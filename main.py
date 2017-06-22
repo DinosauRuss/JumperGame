@@ -22,6 +22,9 @@ class Game():
         self.programRunning = True
 
         self.turns = 3
+        self.mobSpawnDelay = 1500
+        self.mobLastSpawn = 0
+        
         self.loadData()
         
         # Start background music playing
@@ -39,6 +42,7 @@ class Game():
         self.dudes = pg.sprite.Group()
         self.clouds = pg.sprite.Group()
         self.powerups = pg.sprite.Group()
+        self.mobs = pg.sprite.Group()
         
         self.player1 = Player(self.player_sheet, sWidth/2-30, sHeight*(3/4), 50,\
             PLAYER_IMAGES['idle'],\
@@ -64,12 +68,12 @@ class Game():
             x, y = plat
             p = Platform(self.sprite_sheet, random.choice(list(PLATFORM_CHOICES.values())), x, y)
             self.addToGroups(p, self.all_sprites, self.platforms)
-        p = Platform(self.sprite_sheet, (0, 768, 380, 94), sWidth/2, sHeight-55)
+        p = Platform(self.sprite_sheet, PLATFORM_CHOICES['starting'], sWidth/2, sHeight-55)
         p.overrideWidth(sWidth-50)
         self.addToGroups(p, self.all_sprites, self.platforms)
         
         for i in range(5):
-            c = Cloud(self.cloud_sheet)
+            c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'])
             c.rect.y += 500
             self.addToGroups(c, self.all_sprites, self.clouds)
         
@@ -136,6 +140,12 @@ class Game():
                     i.kill()
                     self.score += 500
                     
+        # Enemy collision erases score
+        ouchCollisions = pg.sprite.spritecollide(self.player1,\
+            self.mobs, True, pg.sprite.collide_mask)
+        if ouchCollisions:
+            self.ouchSound.play()
+            self.score = 0        
        
         # Collision check if multiple players on screen            
         #~ hits = pg.sprite.groupcollide(self.dudes, self.platforms,\
@@ -188,11 +198,16 @@ class Game():
                     if not self.platforms.has(item.platform):
                         item.kill()
                         self.score += 10
+                for enemy in self.mobs:
+                    enemy.rect.y += abs(self.player1.vel.y)
+                    if enemy.rect.y > sHeight:
+                        enemy.kill()
+                
                 
                 # Small chance of spawning new cloud\
                 # on every screen scoll
                 if random.randrange(0,100) < 4:
-                    c = Cloud(self.cloud_sheet)
+                    c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'])
                     self.addToGroups(c, self.all_sprites, self.clouds)
                 for cloud in self.clouds:
                     # Larger clouds scroll more quickly
@@ -214,11 +229,22 @@ class Game():
             # Spawn powerups randomly
             random_powerup = random.randrange(1,101)
             if random_powerup <= 5:
-                j = Powerup(p, 'spring', self.sprite_sheet, POWERUP_IMGS['spring_out'], 30, None)
+                j = Powerup(p, 'spring', self.sprite_sheet,\
+                    POWERUP_IMGS['spring_out'], 30, None)
                 self.addToGroups(j, self.all_sprites, self.powerups)
             if random_powerup >= 90:
-                coin = Powerup(p, 'coin', self.sprite_sheet, POWERUP_IMGS['bronze_coin'], None, 30)
+                coin = Powerup(p, 'coin', self.sprite_sheet,\
+                    POWERUP_IMGS['bronze_coin'], None, 30)
                 self.addToGroups(coin, self.all_sprites, self.powerups)
+            
+        # Spawn new mob and randomly choose delay until next mob spawns
+        now  = pg.time.get_ticks()
+        if now - self.mobLastSpawn > self.mobSpawnDelay:
+            self.mobLastSpawn = now
+            self.mobSpawnDelay = random.choice((1500, 3000, 8000))
+            s = SpinningMob(self.enemy_sheet, ENV_IMAGES['spikeball'],\
+                75, None)
+            self.addToGroups(s, self.all_sprites, self.mobs)
 
     def checkForEnd(self):
         if self.player1.pos.y >= sHeight:          
@@ -319,8 +345,10 @@ class Game():
         self.player_sheet = pg.image.load(player_sheet_path).convert_alpha()
         sprite_sheet_path = os.path.join(img_dir, ENV_SPRITESHEET)
         self.sprite_sheet = pg.image.load(sprite_sheet_path).convert_alpha()
-        cloud_path = os.path.join(img_dir, CLOUD)
+        cloud_path = os.path.join(img_dir, CLOUD_SHEET)
         self.cloud_sheet = pg.image.load(cloud_path).convert_alpha()
+        enemy_path = os.path.join(img_dir, ENEMY_SHEET)
+        self.enemy_sheet = pg.image.load(enemy_path).convert_alpha()
 
         
         # Load high score file
