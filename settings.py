@@ -28,7 +28,7 @@ self_dir = os.path.dirname(__file__)
 img_dir = os.path.join(self_dir, 'Images')
 snd_dir = os.path.join(self_dir, 'Sounds')
 
-FILENAME = 'HighScore.txt'
+FILENAME = 'HighScore.dat'
 ENV_SPRITESHEET = 'jumper.png'
 P1_SPRITESHEET = 'dax.png'
 CLOUD_SHEET = 'cloud9.png'

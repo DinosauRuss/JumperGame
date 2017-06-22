@@ -1,5 +1,6 @@
 
 import os
+import pickle
 import pygame as pg
 import random
 import sys
@@ -321,9 +322,8 @@ class Game():
             # Write high score to file
             if self.score > self.highScore:
                 self.highScore = self.score
-                with open(os.path.join(self_dir, FILENAME),\
-                    'w') as f:
-                    f.write('{}\n'.format(self.highScore))
+                with open(os.path.join(self_dir, FILENAME), 'wb') as f:
+                    pickle.dump(self.highScore, f)
                 self.drawText('New High Score!',\
                     25, RED, sWidth/2, (sHeight/2)+50)
                             
@@ -336,9 +336,8 @@ class Game():
             self.drawText('New High Score!', 25, RED, sWidth/2, sHeight/2-50)
             # Write high score to file
             self.highScore = self.score
-            with open(os.path.join(self_dir, FILENAME),\
-                'w') as f:
-                f.write('{}\n'.format(self.highScore))
+            with open(os.path.join(self_dir, FILENAME), 'wb') as f:
+                pickle.dump(self.highScore, f)
 
         pg.display.flip()
         self.waitForKey()
@@ -372,8 +371,8 @@ class Game():
         # Load high score file
         hsFile = os.path.join(self_dir, FILENAME)
         try:
-            with open(hsFile, 'r+') as f:
-                self.highScore = int(f.read())
+            with open(hsFile, 'r+b') as f:
+                self.highScore = pickle.load(f)
         except:
             self.highScore = 0
         
