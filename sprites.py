@@ -12,9 +12,6 @@ vect = pg.math.Vector2
 #~ PLAYER_FRICTION = 
 #~ PLAYER_GRAVITY = 
 #~ PLAYER_JUMP_POWER = 
-#~ sWidth = 
-#~ sHeight = 
-#~ FPS = 
 WHITE = (255,255,255)
 
     
@@ -63,6 +60,8 @@ class Player(pg.sprite.Sprite):
         self.lastAnim = 0
         self.currentFrame = 0
         
+        # Used to change control keys for second player
+        # Used to change control keys for second player
         self.leftKey = leftKey
         self.rightKey = rightKey
         
@@ -135,14 +134,6 @@ class Player(pg.sprite.Sprite):
         self.pos += self.vel + (0.5 * self.acc)
         
         self.rect.midbottom = self.pos
-        
-    def checkBounds(self):
-        # Wrap around sides of screen
-        half = int(self.rect.width/2)
-        if self.pos.x < -half:
-            self.pos.x = sWidth
-        if self.pos.x > sWidth + half:
-            self.pos.x = 0
     
     def jump(self, power, *args):
         # Jump only if standing on platform (not moving downward)
@@ -158,11 +149,10 @@ class Player(pg.sprite.Sprite):
             self.vel.y /= 2
     
     def update(self):
-        self.move()
-        self.checkBounds()     
+        self.move()    
 
 class SpinningMob(pg.sprite.Sprite):
-    def __init__(self, spriteSheet, img_rect, maxWidth, maxHeight):
+    def __init__(self, spriteSheet, img_rect, x, y, maxWidth, maxHeight):
         super().__init__()
         
         self.sheet = spriteSheet
@@ -186,8 +176,8 @@ class SpinningMob(pg.sprite.Sprite):
             self.image = pg.Surface((75, 75))
             self.image.fill(WHITE)
         self.rect = self.image.get_rect()
-        self.rect.x = random.choice((-50, sWidth+50))
-        self.rect.y = random.randint(0, sHeight/2)
+        self.rect.x = x
+        self.rect.y = y
         
         self.animDelay = 100
         self.lastAnim = 0
@@ -256,11 +246,12 @@ class Platform(pg.sprite.Sprite):
         pass
     
 class Cloud(pg.sprite.Sprite):
-    def __init__(self, spriteSheet, img_rect):
+    def __init__(self, spriteSheet, img_rect, x, y, screenLimit):
         super().__init__()
         
         self.sheet = spriteSheet
         self.maxHeight = random.randrange(30,81)
+        self.screenLimit = screenLimit
         self._layer = 0
         
         try:
@@ -273,11 +264,11 @@ class Cloud(pg.sprite.Sprite):
             self.image = pg.Surface((300, 30))
             self.image.fill(WHITE)
         self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(0, sWidth)
-        self.rect.y = random.randrange(-500, -50)
+        self.rect.x = x
+        self.rect.y = y
     
     def update(self):
-        if self.rect.top>= sHeight*2:
+        if self.rect.top>= self.screenLimit:
             self.kill()
 
 class Powerup(pg.sprite.Sprite):

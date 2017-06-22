@@ -75,7 +75,9 @@ class Game():
         self.addToGroups(p, self.all_sprites, self.platforms)
         
         for i in range(5):
-            c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'])
+            c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'],\
+                random.randrange(0, sWidth),\
+                random.randrange(-500, -50), sHeight*2)
             c.rect.y += 500
             self.addToGroups(c, self.all_sprites, self.clouds)
         
@@ -100,6 +102,13 @@ class Game():
         
         # run update function for all sprites in group
         self.all_sprites.update()
+        
+        # Player wraps around screen boundaries
+        half = int(self.player1.rect.width/2)
+        if self.player1.pos.x < -half:
+            self.player1.pos.x = sWidth
+        if self.player1.pos.x > sWidth + half:
+            self.player1.pos.x = 0
         
         # Don't let platforms overlap
         for i in self.platforms:
@@ -151,7 +160,9 @@ class Game():
             self.mobs, True, pg.sprite.collide_mask)
         if ouchCollisions:
             self.ouchSound.play()
-            self.score = 0        
+            self.score -= 500
+            if self.score < 0:
+                self.score = 0   
        
         # Collision check if multiple players on screen            
         #~ hits = pg.sprite.groupcollide(self.dudes, self.platforms,\
@@ -213,7 +224,9 @@ class Game():
                 # Small chance of spawning new cloud\
                 # on every screen scoll
                 if random.randrange(0,100) < 4:
-                    c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'])
+                    c = Cloud(self.cloud_sheet, ENV_IMAGES['cloud'],\
+                        random.randrange(0, sWidth),\
+                        random.randrange(-500, -50), sHeight*2)
                     self.addToGroups(c, self.all_sprites, self.clouds)
                 for cloud in self.clouds:
                     # Larger clouds scroll more quickly
@@ -255,6 +268,8 @@ class Game():
             self.mobLastSpawn = now
             self.mobSpawnDelay = random.choice((1500, 3000, 8000))
             s = SpinningMob(self.enemy_sheet, ENV_IMAGES['spikeball'],\
+                random.choice((-50, sWidth+50)),\
+                random.randint(0, sHeight/2),\
                 75, None)
             self.addToGroups(s, self.all_sprites, self.mobs)
 
