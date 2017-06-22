@@ -225,11 +225,17 @@ class Game():
     def spawnNew(self):
         # Spawn new platforms above screen as player\
         # moves upward in world
-        while len(self.platforms) < 6:            
+        while len(self.platforms) < 6:
+            # New platforms get smaller at higher score
+            tmp_height = 30
+            if self.score >= 2000:
+                tmp_height = 15
+            elif self.score >= 1000:
+                tmp_height = 22
             p = Platform(self.sprite_sheet,\
                 random.choice(list(PLATFORM_CHOICES.values())),\
                 random.randrange(0, sWidth-50),\
-                random.randrange(-75, -30))
+                random.randrange(-75, -30), maxHeight=tmp_height)
             self.addToGroups(p, self.all_sprites, self.platforms)
             
             # Spawn powerups randomly on platforms
@@ -266,7 +272,6 @@ class Game():
                 if plat.rect.bottom < 0:
                     plat.kill()
                 if len(self.platforms) == 0:
-                    #~ self.turns -= 1
                     self.playing = False
 
     def draw(self):
@@ -329,7 +334,7 @@ class Game():
                             
             pg.display.flip()
             self.waitForKey()
-     
+    
     def endTurn(self):
         self.drawText('Ouch! Press any key...', 35, BLUE, sWidth/2, sHeight/3)
         if self.score > self.highScore:
